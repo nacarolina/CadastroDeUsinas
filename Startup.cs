@@ -57,7 +57,7 @@ namespace CadastroDeUsinas
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Usinas}/{action=Index}/{id?}");
             });
         }
     }
