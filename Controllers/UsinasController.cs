@@ -19,6 +19,8 @@ namespace CadastroDeUsinas.Controllers
         {
             _context = context;
         }
+
+        [HttpGet]
         public List<Fornecedor> ObterFornecedores()
         {
             return _context.Fornecedores.ToList();
@@ -33,16 +35,26 @@ namespace CadastroDeUsinas.Controllers
         [HttpGet]
         public List<Usina> ObterUsinas()
         {
-            return  _context.Usinas.ToList();
+            List<Usina> lst = new List<Usina>();
+            foreach (var item in _context.Usinas.ToList().OrderByDescending(u => u.UC))
+            {
+                lst.Add(new Usina
+                {
+                    ID = item.ID,
+                    UC = item.UC,
+                    Ativo = item.Ativo,
+                    IDFornecedor = item.IDFornecedor,
+                    Fornecedor = ObterFornecedorPeloId(item.IDFornecedor)
+                });
+            }
+            return lst;
         }
 
         [HttpPost]
         public string Salvar(string UC, string Ativo, string IdFornecedor)
         {
             #region valida se a usina ja existe
-            var usina = _context.Usinas
-                   .FirstOrDefault(m => m.UC == UC && m.IDFornecedor.ToString() == IdFornecedor);
-            if (usina != null)
+            if (ExisteUsina(UC, Convert.ToInt32(IdFornecedor)))
             {
                 return "existe";
             }
@@ -56,22 +68,20 @@ namespace CadastroDeUsinas.Controllers
             });
 
             _context.SaveChanges();
-            return "";
+            return "sucesso";
         }
 
         [HttpPost]
         public string SalvarAlteracoes(string UC, string Ativo, string IdFornecedor, string Id)
         {
             #region valida se a usina ja existe
-            var ExisteUsina = _context.Usinas
-                   .FirstOrDefault(m => m.UC == UC && m.IDFornecedor.ToString() == IdFornecedor && m.ID != Convert.ToInt32(Id));
-            if (ExisteUsina != null)
+            if (ExisteUsina(UC, Convert.ToInt32(IdFornecedor), Convert.ToInt32(Id)))
             {
                 return "existe";
             }
             #endregion
 
-            var usina = _context.Usinas.FirstOrDefault(m => m.ID == Convert.ToInt32(Id));
+            var usina = ObterUsinaPeloId(Convert.ToInt32(Id));
 
             usina.Ativo = Convert.ToBoolean(Ativo);
             usina.IDFornecedor = Convert.ToInt32(IdFornecedor);
@@ -79,18 +89,39 @@ namespace CadastroDeUsinas.Controllers
 
             _context.Update(usina);
             _context.SaveChanges();
-            return "";
+            return "sucesso";
         }
-
-        // POST: Usinas/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost]
+        public string Excluir(string id)
         {
-            var usina = await _context.Usinas.FindAsync(id);
+            var usina = ObterUsinaPeloId(Convert.ToInt32(id));
+
             _context.Usinas.Remove(usina);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        } 
+            _context.SaveChanges();
+            return "sucesso";
+        }
+        private Usina ObterUsinaPeloId(int Id) { return _context.Usinas.FirstOrDefault(m => m.ID == Id); }
+        private Fornecedor ObterFornecedorPeloId(int Id) { return _context.Fornecedores.FirstOrDefault(m => m.ID == Id); }
+
+        private bool ExisteUsina(string UC, int idFornecedor)
+        {
+            var usina = _context.Usinas
+                   .FirstOrDefault(m => m.UC == UC && m.IDFornecedor == idFornecedor);
+            if (usina != null)
+            {
+                return true;
+            }
+            return false;
+        }
+        private bool ExisteUsina(string UC, int idFornecedor, int idUsina)
+        {
+            var usina = _context.Usinas
+                   .FirstOrDefault(m => m.UC == UC && m.IDFornecedor == idFornecedor && m.ID != idUsina);
+            if (usina != null)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

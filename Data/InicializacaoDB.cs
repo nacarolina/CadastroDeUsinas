@@ -20,12 +20,12 @@ namespace CadastroDeUsinas.Data
 
             var fornecedores = new Fornecedor[]
             {
-            new Fornecedor{ID=1,Nome="SOLARIAN"},
-            new Fornecedor{ID=2,Nome="FUTURA"},
-            new Fornecedor{ID=3,Nome="CENTRAL GERADORA FAZENDA MODELO"},
-            new Fornecedor{ID=4,Nome="NOVA MUNDO"},
-            new Fornecedor{ID=5,Nome="SOLARE"},
-            new Fornecedor{ID=6,Nome="UNISOL"}
+            new Fornecedor{Nome="SOLARIAN"},
+            new Fornecedor{Nome="FUTURA"},
+            new Fornecedor{Nome="CENTRAL GERADORA FAZENDA MODELO"},
+            new Fornecedor{Nome="NOVA MUNDO"},
+            new Fornecedor{Nome="SOLARE"},
+            new Fornecedor{Nome="UNISOL"}
             };
             foreach (Fornecedor s in fornecedores)
             {

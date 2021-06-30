@@ -2,6 +2,7 @@
 
 $(function () {
     CarregarLista();
+
     $.get("/Usinas/ObterFornecedores", null, function (data) {
 
         for (var i = 0; i < data.length; i++) {
@@ -12,9 +13,11 @@ $(function () {
         }
 
         autocomplete(document.getElementById("txtFornecedor"), Fornecedores);
+        autocomplete(document.getElementById("txtFornecedorFiltro"), Fornecedores);
     });
-});
 
+
+});
 function CarregarLista() {
     $.get("/Usinas/ObterUsinas", null, function (data) {
 
@@ -29,38 +32,94 @@ function CarregarLista() {
             var lst = data[i];
             var row = $("<tr>");
             var cols = "<td>" + lst.uc + "</td>";
-
-            cols += "<td style='width: 5%;'><div class='form-check' style='text-align: center;'><input class='form-check-input position-static' disabled type='checkbox' checked='" + lst.ativo + "' id='blankCheckbox' value='opcao1'></div></td>";
-            cols += "<td>" + lst.idFornecedor + "</td>";
+            var checked = lst.ativo == true ? "checked" : "";
+            cols += "<td style='width: 5%;'><div class='form-check' style='text-align: center;'><input class='form-check-input position-static' disabled type='checkbox'  " + checked + " id='blankCheckbox' value='opcao1'></div></td>";
+            cols += "<td>" + lst.fornecedor.nome + "</td>";
             cols += "<td style='padding: 10px; width: 8%;'><div class='btn-group' role='group'>" +
                 "<button id ='btnGroupDrop1' type='button' class='btn btn-danger dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>" +
                 "<i class='fas fa-bars'></i>" +
                 "</button >" +
                 "<div class='dropdown-menu' aria-labelledby='btnGroupDrop1'>" +
                 "<a class='dropdown-item' onclick='Editar(this)' data-id='" + lst.id + "' data-uc='" + lst.uc + "' data-idfornecedor='" + lst.idFornecedor +
-                "' data-fornecedor='"+lst.fornecedor+"' data-ativo='"+lst.ativo+"'>Editar</a>" +
-                "<a asp-for='ID' class='dropdown-item' onclick='Excluir(this)' data-id='" + lst.id + "' data-uc='" + lst.uc + "' data-idfornecedor='" + lst.idFornecedor +
-                "' data-fornecedor='" + lst.fornecedor + "' data-ativo='" + lst.ativo +"'>Excluir</a>" +
-                "</div> </div ></td>";
+                "' data-fornecedor='" + lst.fornecedor.nome + "' data-ativo='" + lst.ativo + "'>Editar</a>" +
+                "<a asp-for='ID' class='dropdown-item' onclick='Excluir(this)' data-id='" + lst.id + "'>Excluir</a>" +
+                "</div></div></td>";
             row.append(cols);
             $("#tbUsinas").append(row);
         }
     });
 }
+
+function Editar(btn) {
+    $("#txtUCusina").val(btn.dataset.uc);
+    $("#txtFornecedor").val(btn.dataset.fornecedor);
+    $("#txtFornecedor")[0].dataset.id = btn.dataset.idfornecedor;
+    $("#btnSalvar")[0].dataset.id = btn.dataset.id;
+    $("#chkAtivo")[0].checked = btn.dataset.ativo == "true" ? true : false;
+    $('#mdCadastro').modal('show');
+    $("#btnSalvar")[0].innerText = "Salvar Alterações";
+
+}
+
+function Excluir(btn) {
+    swal({
+        title: "Deseja excluir?",
+        text: "Após a confirmação, não será possível recuperar os dados!",
+        icon: "warning",
+        buttons: true,
+        buttons: ["Cancelar", "Confirmar"],
+        dangerMode: true,
+    })
+        .then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+                    url: "/Usinas/Excluir",
+                    data: { id: btn.dataset.id },
+                    type: "POST",
+                    dataType: "json",
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        if (XMLHttpRequest.responseText == "sucesso") {
+                            swal("Excluido com sucesso!", {
+                                icon: "success",
+                            });
+                            CarregarLista();
+                        }
+                    }
+                });
+            }
+        });
+}
+
 function Cadastrar() {
-    $('#txtUCusina').trigger('focus');
     $("#txtUCusina").val("");
     $("#txtFornecedor").val("");
+    $("#txtFornecedor")[0].dataset.id = "";
+    $("#btnSalvar")[0].dataset.id = "";
     $("#chkAtivo")[0].checked = true;
+    $("#btnSalvar")[0].innerText = "Salvar";
     $('#mdCadastro').modal('show');
 }
 function Salvar() {
     var UC = "", IdFornecedor = "", Ativo = "", Id = "", url = "", data = [];
     //#region valida campos em branco
-    if ($("#txtUCusina").val() == "") {
-
+    if ($("#txtUCusina").val().trim() == "") {
+        $("#txtUCusina").removeClass("form-control");
+        $("#txtUCusina").addClass("form-control is-invalid");
+        return;
     }
-
+    else {
+        $("#txtUCusina").removeClass("form-control is-invalid");
+        $("#txtUCusina").addClass("form-control");
+    }
+    if ($("#txtFornecedor").val().trim() == "" || $("#txtFornecedor")[0].dataset.id == "") {
+        $("#txtFornecedor").removeClass("form-control");
+        $("#txtFornecedor").addClass("form-control is-invalid");
+        return;
+    }
+    else {
+        $("#txtFornecedor").removeClass("form-control is-invalid");
+        $("#txtFornecedor").addClass("form-control");
+    }
     //#endregion
 
     UC = $("#txtUCusina").val();
@@ -82,23 +141,83 @@ function Salvar() {
         data: data,
         type: "POST",
         dataType: "json",
-        beforeSend: function (XMLHttpRequest) {
-        },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-
-        },
-        success: function (data, textStatus, XMLHttpRequest) {
-
-            if (data.d == "existe") {
-
+            if (XMLHttpRequest.responseText == "existe") {
+                swal({
+                    title: "Erro ao salvar!",
+                    text: "Já existe uma usina com esse UC e esse Fornecedor.",
+                    icon: "error"
+                });
             }
             else {
+                swal({
+                    title: "Salvo com sucesso!",
+                    icon: "success",
+                });
                 $("#mdCadastro").modal("hide");
                 CarregarLista();
             }
         }
     });
 }
+
+//#region Filtros
+function Filtrar(filter, posicaoColuna) {
+    var table, tr, td, i;
+    table = document.getElementById("tbUsinas");
+    tr = table.getElementsByTagName("tr");
+    var linhasEscondidas = 0;
+
+    filter = filter.toUpperCase();
+
+    for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td");
+        cell = tr[i].getElementsByTagName("td")[posicaoColuna];
+        if (cell) {
+            if (cell.innerHTML.toUpperCase().indexOf(filter) > -1 || filter == "") {
+                tr[i].style.display = "";
+            }
+            else {
+                tr[i].style.display = "none";
+                linhasEscondidas++;
+            }
+        }
+    }
+
+    if (tr.length == linhasEscondidas)
+        $("#tfUsinas").css("display", "");
+    else
+        $("#tfUsinas").css("display", "none");
+}
+function FiltrarAtivo(filter, posicaoColuna) {
+    var table, tr, td, i;
+    table = document.getElementById("tbUsinas");
+    tr = table.getElementsByTagName("tr");
+    var linhasEscondidas = 0;
+
+    filter = filter.toUpperCase();
+
+    for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td");
+        cell = tr[i].getElementsByTagName("td")[posicaoColuna];
+        if (cell) {
+            chk = tr[i].getElementsByTagName("input")[0];
+            if (filter == "" || (filter == "ATIVO" && chk.checked) || (filter == "INATIVO" && !chk.checked)) {
+                tr[i].style.display = "";
+            }
+            else {
+                tr[i].style.display = "none";
+                linhasEscondidas++;
+            }
+        }
+    }
+
+    if (tr.length == linhasEscondidas)
+        $("#tfUsinas").css("display", "");
+    else
+        $("#tfUsinas").css("display", "none");
+}
+//#endregion
 
 //#region autocomplete
 let autocomplete = (inp, arr) => {
@@ -146,6 +265,10 @@ let autocomplete = (inp, arr) => {
                     /*insert the value for the autocomplete text field:*/
                     inp.value = this.getElementsByTagName("input")[0].value;
                     inp.dataset.id = this.getElementsByTagName("input")[0].dataset.id;
+
+                    if (inp.id == "txtFornecedorFiltro")
+                        Filtrar(inp.value, 2);
+
                     /*close the list of autocompleted values,
                         (or any other open lists of autocompleted values:*/
                     closeAllLists();

@@ -6,7 +6,6 @@
 
 <h4>Listagem de usinas de Geração Distribuída</h4>
 <hr />
-<button class="btn btn-info" style="float:right; margin-bottom:10px" onclick="Cadastrar()" @*asp-action="Create"*@>Cadastrar</button>
 <style>
     .autocomplete {
         position: relative;
@@ -22,7 +21,30 @@
         margin: 0px 16px;
     }
 </style>
-<table class="table table-bordered">
+
+<div class="row" style="margin-bottom:15px;">
+    <div class="col-sm">
+        UC da usina:
+        <input type="text" id="txtUCFiltro" onkeyup="Filtrar(this.value,0)" class="form-control" />
+    </div>
+    <div class="col-sm">
+        Fornecedor:
+        <input type="text" id="txtFornecedorFiltro" data-id="" onkeyup="Filtrar(this.value,2)" class="form-control" />
+    </div>
+    <div class="col-sm">
+        Ativo:
+        <select class="form-control" onchange="FiltrarAtivo(this.value,1)">
+            <option value="">Selecione</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+        </select>
+    </div>
+    <div class="col-md-auto">
+        <button class="btn btn-info" style="margin-top:24px" onclick="Cadastrar()">Cadastrar</button>
+    </div>
+</div>
+
+<table class="table table-bordered" id="tblUsinas">
     <thead>
         <tr>
             <th>
@@ -34,30 +56,10 @@
             <th>
                 Fornecedor
             </th>
-            <th></th>
+            <th>Ações</th>
         </tr>
     </thead>
-    <tbody id="tbUsinas"> 
-            <tr>
-                <td>
-                </td>
-                <td>
-                </td>
-                <td>
-                </td>
-                <td style=" padding: 10px; width: 8%;">
-                    <div class="btn-group" role="group">
-                        <button id="btnGroupDrop1" type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                            <a class="dropdown-item">Editar</a>
-                            <a asp-for="ID" class="dropdown-item">Excluir</a>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-    </tbody>
+    <tbody id="tbUsinas"></tbody>
     <tfoot id="tfUsinas" style="display:none;"><tr><td colspan="4">Não há registros!</td></tr></tfoot>
 </table>
 
@@ -70,13 +72,13 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" asp-action="Create">
-
-                <span class="text-danger">Os campos com <string>*</string> são obrigatórios</span>
-                <div class="text-danger"></div>
+            <div class="modal-body needs-validation">
                 <div class="form-group">
-                    <label class="control-label">*UC da usina</label>
-                    <input id="txtUCusina" type="text" class="form-control" />
+                    <label for="txtUCusina">UC da usina:</label>
+                    <input type="text" class="form-control" id="txtUCusina" placeholder="UC da usina" required>
+                    <div class="invalid-feedback">
+                        Por favor, informe um UC da usina válido.
+                    </div>
                 </div>
                 <hr />
                 <div class="form-group form-check">
@@ -85,14 +87,16 @@
                 </div>
                 <hr />
                 <div class="form-group">
-                    <label class="control-label">*Fornecedor</label>
-                    <input class='form-control autocomplete' id='txtFornecedor' type='text'>
-                    <span class="text-danger"></span>
+                    <label for="txtFornecedor">Fornecedor:</label>
+                    <input type="text" class="form-control autocomplete" data-id="" id="txtFornecedor" placeholder="Fornecedor" required>
+                    <div class="invalid-feedback">
+                        Por favor, informe um Fornecedor válido.
+                    </div> 
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                <button type="button" id="btnSalvar" onclick="Salvar()" class="btn btn-primary">Salvar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnSalvar" data-id="" onclick="Salvar()" class="btn btn-primary">Salvar</button>
             </div>
         </div>
     </div>
@@ -100,3 +104,4 @@
 <script src="~/lib/jquery/dist/jquery.js"></script>
 <script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js"></script>
 <script src="~/js/Cadastro.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
