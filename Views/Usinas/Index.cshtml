@@ -6,8 +6,22 @@
 
 <h4>Listagem de usinas de Geração Distribuída</h4>
 <hr />
-<button class="btn btn-info" style="float:right; margin-bottom:10px"  data-toggle="modal" data-target="#ExemploModalCentralizado" onclick="Cadastrar()" @*asp-action="Create"*@>Cadastrar</button>
+<button class="btn btn-info" style="float:right; margin-bottom:10px" onclick="Cadastrar()" @*asp-action="Create"*@>Cadastrar</button>
+<style>
+    .autocomplete {
+        position: relative;
+        display: inline-block;
+    }
 
+    .autocomplete-items {
+        position: absolute;
+        z-index: 99;
+        top: 88%;
+        left: 0;
+        right: 0;
+        margin: 0px 16px;
+    }
+</style>
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -23,18 +37,13 @@
             <th></th>
         </tr>
     </thead>
-    <tbody id="tbUsinas">
-        @foreach (var item in Model)
-        {
+    <tbody id="tbUsinas"> 
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.UC)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Ativo)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.IDFornecedor)
                 </td>
                 <td style=" padding: 10px; width: 8%;">
                     <div class="btn-group" role="group">
@@ -42,17 +51,17 @@
                             <i class="fas fa-bars"></i>
                         </button>
                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                            <a asp-action="Edit" asp-route-id="@item.ID" class="dropdown-item">Editar</a>
-                            <a asp-action="Delete" asp-for="ID" class="dropdown-item">Excluir</a>
+                            <a class="dropdown-item">Editar</a>
+                            <a asp-for="ID" class="dropdown-item">Excluir</a>
                         </div>
                     </div>
                 </td>
             </tr>
-        }
     </tbody>
     <tfoot id="tfUsinas" style="display:none;"><tr><td colspan="4">Não há registros!</td></tr></tfoot>
 </table>
-<div class="modal fade" id="ExemploModalCentralizado" tabindex="-1" role="dialog" aria-labelledby="TituloModalCentralizado" aria-hidden="true">
+
+<div class="modal fade" id="mdCadastro" tabindex="-1" role="dialog" aria-labelledby="TituloModalCentralizado" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -62,11 +71,12 @@
                 </button>
             </div>
             <div class="modal-body" asp-action="Create">
+
+                <span class="text-danger">Os campos com <string>*</string> são obrigatórios</span>
                 <div class="text-danger"></div>
                 <div class="form-group">
-                    <label class="control-label">UC da usina</label>
-                    <input type="text" class="form-control" />
-                    <span class="text-danger"></span>
+                    <label class="control-label">*UC da usina</label>
+                    <input id="txtUCusina" type="text" class="form-control" />
                 </div>
                 <hr />
                 <div class="form-group form-check">
@@ -75,9 +85,9 @@
                 </div>
                 <hr />
                 <div class="form-group">
-                    <label class="control-label">Fornecedor</label>
-                    <input type="text" class="form-control" />
-                    <span  class="text-danger"></span>
+                    <label class="control-label">*Fornecedor</label>
+                    <input class='form-control autocomplete' id='txtFornecedor' type='text'>
+                    <span class="text-danger"></span>
                 </div>
             </div>
             <div class="modal-footer">
@@ -87,4 +97,6 @@
         </div>
     </div>
 </div>
-<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" ></script>
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js"></script>
+<script src="~/js/Cadastro.js"></script>
